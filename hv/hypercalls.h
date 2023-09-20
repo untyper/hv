@@ -29,7 +29,10 @@ enum hypercall_code : uint64_t {
   hypercall_get_hv_base,
   hypercall_install_mmr,
   hypercall_remove_mmr,
-  hypercall_remove_all_mmrs
+  hypercall_remove_all_mmrs,
+  hypercall_send_message,
+  hypercall_get_message,
+  hypercall_get_message_time
 };
 
 // hypercall input
@@ -99,6 +102,15 @@ void remove_mmr(vcpu* cpu);
 
 // remove every installed MMR
 void remove_all_mmrs(vcpu* cpu);
+
+// assign a value to global message object
+void send_message(vcpu* const cpu);
+
+// get message from global message object
+void get_message(vcpu* const cpu);
+
+// get message timestamp
+void get_message_time(vcpu* const cpu);
 
 } // namespace hc
 

@@ -37,6 +37,13 @@ struct hypervisor {
   uint64_t kprcb_current_thread_offset;
   uint64_t kthread_apc_state_offset;
   uint64_t kapc_state_process_offset;
+
+  // usermode and kernelmode communication pipe
+  //uint64_t message = 0;
+  struct um_km_message_pipe {
+    uint64_t time    = 0;
+    uint64_t content = 0;
+  } message;
 };
 
 // global instance of the hypervisor

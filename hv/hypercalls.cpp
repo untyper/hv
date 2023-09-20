@@ -598,5 +598,24 @@ void remove_all_mmrs(vcpu* const cpu) {
   skip_instruction();
 }
 
+// assign a value to global message object
+void send_message(vcpu* const cpu) {
+  ghv.message.content = cpu->ctx->rcx;
+  ghv.message.time    = cpu->ctx->rdx;
+  skip_instruction();
+}
+
+// get message from global message object
+void get_message(vcpu* const cpu) {
+  cpu->ctx->rax = ghv.message.content;
+  skip_instruction();
+}
+
+// get message timestamp in milliseconds from global message object
+void get_message_time(vcpu* const cpu) {
+  cpu->ctx->rax = ghv.message.time;
+  skip_instruction();
+}
+
 } // namespace hv::hc
 

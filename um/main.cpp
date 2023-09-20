@@ -3,12 +3,7 @@
 #include "hv.h"
 #include "dumper.h"
 
-int main() {
-  if (!hv::is_hv_running()) {
-    printf("HV not running.\n");
-    return 0;
-  }
-
+void hide_hypervisor() {
   auto const hv_base = static_cast<uint8_t*>(hv::get_hv_base());
   auto const hv_size = 0x64000;
 
@@ -27,32 +22,23 @@ int main() {
         printf("failed to hide page: 0x%p.\n", virt);
     }
   });
+}
 
-  printf("Pinged the hypervisor! Flushing logs...\n");
-
-  FILE* file = nullptr;
-  fopen_s(&file, "hvlog.txt", "a");
-
-  while (!GetAsyncKeyState(VK_RETURN)) {
-    // flush the logs
-    uint32_t count = 512;
-    hv::logger_msg msgs[512];
-    hv::flush_logs(count, msgs);
-
-    // print the logs
-    for (uint32_t i = 0; i < count; ++i) {
-      printf("[%I64u][CPU=%u] %s\n", msgs[i].id, msgs[i].aux, msgs[i].data);
-      fprintf(file, "[%I64u][CPU=%u] %s\n", msgs[i].id, msgs[i].aux, msgs[i].data);
-    }
-
-    fflush(file);
-    Sleep(1);
+int main() {
+  if (!hv::is_hv_running()) {
+    printf("HV not running.\n");
+    return 0;
   }
 
-  fclose(file);
+  hide_hypervisor();
+  printf("Pinged the hypervisor! Flushing logs...\n");
+
+  if (hv::get_message() != hv::message_driver_loaded)
+    if (hv::wait_for_message(4096) == hv::message_driver_loaded)
+
+  printf("Driver loaded!\n");
 
   hv::for_each_cpu([](uint32_t) {
     hv::remove_all_mmrs();
   });
 }
-
