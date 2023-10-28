@@ -54,6 +54,7 @@ enum hypercall_code : uint64_t {
   hypercall_remove_all_mmrs,
   hypercall_send_message,
   hypercall_get_message,
+  hypercall_get_message_type,
   hypercall_get_message_time
 };
 
@@ -147,8 +148,11 @@ void remove_all_mmrs();
 // send message through hv pipe so km driver can fetch it
 void send_message(uint64_t);
 
-// get message from km driver through hv pipe
+// get message content
 uint64_t get_message();
+
+// get message type
+uint64_t get_message_type();
 
 // get message timestamp in milliseconds
 uint64_t get_message_time();
@@ -377,20 +381,29 @@ inline void remove_all_mmrs() {
   hv::vmx_vmcall(input);
 }
 
-// send message through hv pipe so km driver can fetch it
-inline void send_message(uint64_t message) {
+// send message to hv so other hv clients can fetch it
+inline void send_message(uint64_t message, uint64_t type = 0) {
   hv::hypercall_input input;
   input.code = hv::hypercall_send_message;
   input.key  = hv::hypercall_key;
   input.args[0] = message;
-  input.args[1] = hv::get_current_time();
+  input.args[1] = type;
+  input.args[2] = hv::get_current_time();
   hv::vmx_vmcall(input);
 }
 
-// get message from km driver through hv pipe
+// get message content
 inline uint64_t get_message() {
   hv::hypercall_input input;
   input.code = hv::hypercall_get_message;
+  input.key  = hv::hypercall_key;
+  return hv::vmx_vmcall(input);
+}
+
+// get message type
+inline uint64_t get_message_type() {
+  hv::hypercall_input input;
+  input.code = hv::hypercall_get_message_type;
   input.key  = hv::hypercall_key;
   return hv::vmx_vmcall(input);
 }

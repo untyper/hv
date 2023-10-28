@@ -42,6 +42,7 @@ struct hypervisor {
   //uint64_t message = 0;
   struct um_km_message_pipe {
     uint64_t time    = 0;
+    uint64_t type    = 0;
     uint64_t content = 0;
   } message;
 };

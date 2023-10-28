@@ -32,6 +32,7 @@ enum hypercall_code : uint64_t {
   hypercall_remove_all_mmrs,
   hypercall_send_message,
   hypercall_get_message,
+  hypercall_get_message_type,
   hypercall_get_message_time
 };
 
@@ -103,13 +104,16 @@ void remove_mmr(vcpu* cpu);
 // remove every installed MMR
 void remove_all_mmrs(vcpu* cpu);
 
-// assign a value to global message object
+// assign value to global message object so hv clients can fetch it
 void send_message(vcpu* const cpu);
 
-// get message from global message object
+// get message content
 void get_message(vcpu* const cpu);
 
-// get message timestamp
+// get message type
+void get_message_type(vcpu* const cpu);
+
+// get message timestamp in milliseconds
 void get_message_time(vcpu* const cpu);
 
 } // namespace hc

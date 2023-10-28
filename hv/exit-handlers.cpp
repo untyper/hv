@@ -213,6 +213,7 @@ void emulate_vmcall(vcpu* const cpu) {
   case hypercall_remove_all_mmrs:      hc::remove_all_mmrs(cpu);      return;
   case hypercall_send_message:         hc::send_message(cpu);         return;
   case hypercall_get_message:          hc::get_message(cpu);          return;
+  case hypercall_get_message_type:     hc::get_message_type(cpu);     return;
   case hypercall_get_message_time:     hc::get_message_time(cpu);     return;
   }
 
