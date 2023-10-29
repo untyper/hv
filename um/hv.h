@@ -145,8 +145,8 @@ void remove_mmr(void* handle);
 // remove every installed MMR
 void remove_all_mmrs();
 
-// send message through hv pipe so km driver can fetch it
-void send_message(uint64_t);
+// send message
+void send_message(uint64_t content, uint64_t type);
 
 // get message content
 uint64_t get_message();
@@ -382,11 +382,11 @@ inline void remove_all_mmrs() {
 }
 
 // send message to hv so other hv clients can fetch it
-inline void send_message(uint64_t message, uint64_t type = 0) {
+inline void send_message(uint64_t content, uint64_t type = 0) {
   hv::hypercall_input input;
   input.code = hv::hypercall_send_message;
   input.key  = hv::hypercall_key;
-  input.args[0] = message;
+  input.args[0] = content;
   input.args[1] = type;
   input.args[2] = hv::get_current_time();
   hv::vmx_vmcall(input);
