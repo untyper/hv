@@ -145,7 +145,7 @@ void remove_mmr(void* handle);
 // remove every installed MMR
 void remove_all_mmrs();
 
-// send message
+// send message to hv so other hv clients can fetch it
 void send_message(uint64_t content, uint64_t type);
 
 // get message content
