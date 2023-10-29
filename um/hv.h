@@ -146,7 +146,7 @@ void remove_mmr(void* handle);
 void remove_all_mmrs();
 
 // send message to hv so other hv clients can fetch it
-void send_message(uint64_t content, uint64_t type);
+void send_message(uint64_t content, uint64_t type = 0);
 
 // get message content
 uint64_t get_message();
@@ -158,7 +158,7 @@ uint64_t get_message_type();
 uint64_t get_message_time();
 
 // wait until a new pessage is available in the hv pipe then fetch it
-uint64_t wait_for_message(uint64_t timeout);
+uint64_t wait_for_message(uint64_t timeout, uint64_t type = 0);
 
 // VMCALL instruction, defined in hv.asm
 uint64_t vmx_vmcall(hypercall_input& input);
@@ -382,7 +382,7 @@ inline void remove_all_mmrs() {
 }
 
 // send message to hv so other hv clients can fetch it
-inline void send_message(uint64_t content, uint64_t type = 0) {
+inline void send_message(uint64_t content, uint64_t type) {
   hv::hypercall_input input;
   input.code = hv::hypercall_send_message;
   input.key  = hv::hypercall_key;
@@ -417,14 +417,15 @@ inline uint64_t get_message_time() {
 }
 
 // wait until a new pessage is available in the hv pipe then fetch it
-inline uint64_t wait_for_message(uint64_t timeout) {
+inline uint64_t wait_for_message(uint64_t timeout, uint64_t type) {
   uint64_t timeout_start       = hv::get_current_time();
   uint64_t cached_message_time = hv::get_message_time();
 
   while (hv::get_current_time() - timeout_start < timeout) {
     uint64_t message_time = hv::get_message_time();
+    uint64_t message_type = hv::get_message_type();
 
-    if (message_time > cached_message_time) {
+    if (message_time > cached_message_time && message_type == type) {
       // new message available
       return hv::get_message();
     }
