@@ -55,7 +55,8 @@ enum hypercall_code : uint64_t {
   hypercall_send_message,
   hypercall_get_message,
   hypercall_get_message_type,
-  hypercall_get_message_time
+  hypercall_get_message_time,
+  hypercall_get_message_sender
 };
 
 // hypercall input
@@ -156,6 +157,9 @@ uint64_t get_message_type();
 
 // get message timestamp in milliseconds
 uint64_t get_message_time();
+
+// get message sender id
+uint64_t get_message_sender();
 
 // wait until a new pessage is available in the message pipe then fetch it
 uint64_t wait_for_message(uint64_t timeout, uint64_t type = 0);
@@ -413,6 +417,14 @@ inline uint64_t get_message_type() {
 inline uint64_t get_message_time() {
   hv::hypercall_input input;
   input.code = hv::hypercall_get_message_time;
+  input.key  = hv::hypercall_key;
+  return hv::vmx_vmcall(input);
+}
+
+// get message sender id
+inline uint64_t get_message_sender() {
+  hv::hypercall_input input;
+  input.code = hv::hypercall_get_message_sender;
   input.key  = hv::hypercall_key;
   return hv::vmx_vmcall(input);
 }
