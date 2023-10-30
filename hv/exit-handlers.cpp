@@ -215,6 +215,7 @@ void emulate_vmcall(vcpu* const cpu) {
   case hypercall_get_message:          hc::get_message(cpu);          return;
   case hypercall_get_message_type:     hc::get_message_type(cpu);     return;
   case hypercall_get_message_time:     hc::get_message_time(cpu);     return;
+  case hypercall_get_message_sender:   hc::get_message_sender(cpu);   return;
   }
 
   HV_LOG_VERBOSE("Unhandled VMCALL. RIP=%p.", vmx_vmread(VMCS_GUEST_RIP));

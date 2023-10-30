@@ -145,7 +145,7 @@ void remove_mmr(void* handle);
 // remove every installed MMR
 void remove_all_mmrs();
 
-// send message to hv so other hv clients can fetch it
+// send message to hypervisor so clients can fetch it
 void send_message(uint64_t content, uint64_t type = 0);
 
 // get message content
@@ -157,7 +157,7 @@ uint64_t get_message_type();
 // get message timestamp in milliseconds
 uint64_t get_message_time();
 
-// wait until a new pessage is available in the hv pipe then fetch it
+// wait until a new pessage is available in the message pipe then fetch it
 uint64_t wait_for_message(uint64_t timeout, uint64_t type = 0);
 
 // VMCALL instruction, defined in hv.asm
@@ -381,7 +381,7 @@ inline void remove_all_mmrs() {
   hv::vmx_vmcall(input);
 }
 
-// send message to hv so other hv clients can fetch it
+// send message to hypervisor so clients can fetch it
 inline void send_message(uint64_t content, uint64_t type) {
   hv::hypercall_input input;
   input.code = hv::hypercall_send_message;
@@ -389,6 +389,7 @@ inline void send_message(uint64_t content, uint64_t type) {
   input.args[0] = content;
   input.args[1] = type;
   input.args[2] = hv::get_current_time();
+  input.args[3] = GetCurrentProcessId();
   hv::vmx_vmcall(input);
 }
 
@@ -416,7 +417,7 @@ inline uint64_t get_message_time() {
   return hv::vmx_vmcall(input);
 }
 
-// wait until a new pessage is available in the hv pipe then fetch it
+// wait until a new pessage is available in the message pipe then fetch it
 inline uint64_t wait_for_message(uint64_t timeout, uint64_t type) {
   uint64_t timeout_start       = hv::get_current_time();
   uint64_t cached_message_time = hv::get_message_time();

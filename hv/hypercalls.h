@@ -33,7 +33,8 @@ enum hypercall_code : uint64_t {
   hypercall_send_message,
   hypercall_get_message,
   hypercall_get_message_type,
-  hypercall_get_message_time
+  hypercall_get_message_time,
+  hypercall_get_message_sender
 };
 
 // hypercall input
@@ -115,6 +116,9 @@ void get_message_type(vcpu* const cpu);
 
 // get message timestamp in milliseconds
 void get_message_time(vcpu* const cpu);
+
+// get message sender id
+void get_message_sender(vcpu* const cpu);
 
 } // namespace hc
 
