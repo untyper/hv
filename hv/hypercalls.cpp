@@ -598,5 +598,38 @@ void remove_all_mmrs(vcpu* const cpu) {
   skip_instruction();
 }
 
+// assign value to global message object so hv clients can fetch it
+void send_message(vcpu* const cpu) {
+  ghv.message.content = cpu->ctx->rcx;
+  ghv.message.type    = cpu->ctx->rdx;
+  ghv.message.time    = cpu->ctx->r8;
+  ghv.message.sender  = cpu->ctx->r9;
+  skip_instruction();
+}
+
+// get message content
+void get_message(vcpu* const cpu) {
+  cpu->ctx->rax = ghv.message.content;
+  skip_instruction();
+}
+
+// get message type
+void get_message_type(vcpu* const cpu) {
+  cpu->ctx->rax = ghv.message.type;
+  skip_instruction();
+}
+
+// get message timestamp in milliseconds
+void get_message_time(vcpu* const cpu) {
+  cpu->ctx->rax = ghv.message.time;
+  skip_instruction();
+}
+
+// get message sender id
+void get_message_sender(vcpu* const cpu) {
+  cpu->ctx->rax = ghv.message.sender;
+  skip_instruction();
+}
+
 } // namespace hv::hc
 

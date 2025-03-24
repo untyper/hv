@@ -1,5 +1,10 @@
 #pragma once
 
+#include <thread>
+#include <chrono>
+
+#include <iostream>
+
 #include <cstdint>
 #include <Windows.h>
 
@@ -46,7 +51,12 @@ enum hypercall_code : uint64_t {
   hypercall_get_hv_base,
   hypercall_install_mmr,
   hypercall_remove_mmr,
-  hypercall_remove_all_mmrs
+  hypercall_remove_all_mmrs,
+  hypercall_send_message,
+  hypercall_get_message,
+  hypercall_get_message_type,
+  hypercall_get_message_time,
+  hypercall_get_message_sender
 };
 
 // hypercall input
@@ -66,6 +76,15 @@ enum mmr_memory_mode {
   mmr_memory_mode_w = 0b010,
   mmr_memory_mode_x = 0b100
 };
+
+enum um_km_messages : uint64_t {
+  message_ping = 0,
+  message_driver_loaded,
+  message_driver_failed,
+};
+
+// helper function to get time, used in wait_for_message
+uint64_t get_current_time();
 
 // check if the system is virtualized
 bool is_hv_running();
@@ -127,6 +146,24 @@ void remove_mmr(void* handle);
 // remove every installed MMR
 void remove_all_mmrs();
 
+// send message to hypervisor so clients can fetch it
+void send_message(uint64_t content, uint64_t type = 0);
+
+// get message content
+uint64_t get_message();
+
+// get message type
+uint64_t get_message_type();
+
+// get message timestamp in milliseconds
+uint64_t get_message_time();
+
+// get message sender id
+uint64_t get_message_sender();
+
+// wait until a new pessage is available in the message pipe then fetch it
+uint64_t wait_for_message(uint64_t timeout, uint64_t type = 0);
+
 // VMCALL instruction, defined in hv.asm
 uint64_t vmx_vmcall(hypercall_input& input);
 
@@ -135,6 +172,19 @@ uint64_t vmx_vmcall(hypercall_input& input);
 * implementation:
 * 
 **/
+
+// get current post-boot timestamp in milliseconds
+inline uint64_t get_current_time() {
+  LARGE_INTEGER frequency;
+  LARGE_INTEGER time;
+
+  QueryPerformanceFrequency(&frequency);
+  QueryPerformanceCounter(&time);
+
+  time.QuadPart *= 1000; // milliseconds
+  time.QuadPart /= frequency.QuadPart;
+  return time.QuadPart;
+}
 
 // check if the system is virtualized
 inline bool is_hv_running() {
@@ -333,6 +383,69 @@ inline void remove_all_mmrs() {
   input.code = hv::hypercall_remove_all_mmrs;
   input.key  = hv::hypercall_key;
   hv::vmx_vmcall(input);
+}
+
+// send message to hypervisor so clients can fetch it
+inline void send_message(uint64_t content, uint64_t type) {
+  hv::hypercall_input input;
+  input.code = hv::hypercall_send_message;
+  input.key  = hv::hypercall_key;
+  input.args[0] = content;
+  input.args[1] = type;
+  input.args[2] = hv::get_current_time();
+  input.args[3] = GetCurrentProcessId();
+  hv::vmx_vmcall(input);
+}
+
+// get message content
+inline uint64_t get_message() {
+  hv::hypercall_input input;
+  input.code = hv::hypercall_get_message;
+  input.key  = hv::hypercall_key;
+  return hv::vmx_vmcall(input);
+}
+
+// get message type
+inline uint64_t get_message_type() {
+  hv::hypercall_input input;
+  input.code = hv::hypercall_get_message_type;
+  input.key  = hv::hypercall_key;
+  return hv::vmx_vmcall(input);
+}
+
+// get message timestamp in milliseconds
+inline uint64_t get_message_time() {
+  hv::hypercall_input input;
+  input.code = hv::hypercall_get_message_time;
+  input.key  = hv::hypercall_key;
+  return hv::vmx_vmcall(input);
+}
+
+// get message sender id
+inline uint64_t get_message_sender() {
+  hv::hypercall_input input;
+  input.code = hv::hypercall_get_message_sender;
+  input.key  = hv::hypercall_key;
+  return hv::vmx_vmcall(input);
+}
+
+// wait until a new pessage is available in the message pipe then fetch it
+inline uint64_t wait_for_message(uint64_t timeout, uint64_t type) {
+  uint64_t timeout_start       = hv::get_current_time();
+  uint64_t cached_message_time = hv::get_message_time();
+
+  while (hv::get_current_time() - timeout_start < timeout) {
+    uint64_t message_time = hv::get_message_time();
+    uint64_t message_type = hv::get_message_type();
+
+    if (message_time > cached_message_time && message_type == type) {
+      // new message available
+      return hv::get_message();
+    }
+    cached_message_time = message_time;
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  return 0;
 }
 
 } // namespace hv
