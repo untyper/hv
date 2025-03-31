@@ -4,14 +4,5 @@
     <ShowAllFiles>true</ShowAllFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-=======
-    <TestCertificate>CN="WDKTestCert User,133872830700931425" | 35E264C988486554F679E747AEFDE8F5C852FDE4</TestCertificate>
->>>>>>> Stashed changes
-=======
-    <TestCertificate>CN="WDKTestCert User,133872830700931425" | 35E264C988486554F679E747AEFDE8F5C852FDE4</TestCertificate>
->>>>>>> Stashed changes
   </PropertyGroup>
 </Project>
