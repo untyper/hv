@@ -30,6 +30,7 @@ enum hypercall_code : uint64_t {
   hypercall_install_mmr,
   hypercall_remove_mmr,
   hypercall_remove_all_mmrs,
+  hypercall_read_msr,
   hypercall_send_message,
   hypercall_get_message,
   hypercall_get_message_type,
@@ -105,20 +106,23 @@ void remove_mmr(vcpu* cpu);
 // remove every installed MMR
 void remove_all_mmrs(vcpu* cpu);
 
+// read a Model-Specific Register (MSR) (for example IAT32_PAT for page memory types)
+void read_msr(vcpu* cpu);
+
 // assign value to global message object so hv clients can fetch it
-void send_message(vcpu* const cpu);
+void send_message(vcpu* cpu);
 
 // get message content
-void get_message(vcpu* const cpu);
+void get_message(vcpu* cpu);
 
 // get message type
-void get_message_type(vcpu* const cpu);
+void get_message_type(vcpu* cpu);
 
 // get message timestamp in milliseconds
-void get_message_time(vcpu* const cpu);
+void get_message_time(vcpu* cpu);
 
 // get message sender id
-void get_message_sender(vcpu* const cpu);
+void get_message_sender(vcpu* cpu);
 
 } // namespace hc
 

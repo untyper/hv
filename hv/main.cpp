@@ -5,11 +5,27 @@
 
 // kernel mode hv interface
 namespace hvk {
-  enum um_km_messages : uint64_t {
-    message_ping = 0,
-    message_driver_loaded,
-    message_driver_failed,
+
+namespace message_clients {
+  // driver should always be client number 0.
+  // this should always be taken into account by usermode clients,
+  // when expanding the namespace.
+  inline constexpr uint64_t driver = 0;
+}
+
+namespace messages {
+  enum : uint64_t {
+    loaded,
+    failed_loading,
+    unloading,
   };
+}
+
+namespace message_types {
+  enum : uint64_t {
+    load_state
+  };
+}
 
 // get time in milliseconds based on boot-time tick frequency
 inline uint64_t get_current_time() {
@@ -22,12 +38,14 @@ inline uint64_t get_current_time() {
   return time.QuadPart;
 }
 
-inline void send_message(uint64_t message) {
+inline void send_message(uint64_t message, uint64_t type) {
   hv::hypercall_input input;
   input.code = hv::hypercall_send_message;
   input.key  = hv::hypercall_key;
   input.args[0] = message;
-  input.args[1] = get_current_time();
+  input.args[1] = type;
+  input.args[2] = get_current_time();
+  input.args[3] = hvk::message_clients::driver;
   hv::vmx_vmcall(input);
 }
 
@@ -111,8 +129,8 @@ NTSTATUS driver_entry(PDRIVER_OBJECT const driver, PUNICODE_STRING) {
   else
     DbgPrint("[client] Failed to ping hypervisor!\n");
 
-  // Tell usermode client that driver has been loaded successfully
-  hvk::send_message(hvk::message_driver_loaded);
+  // tell usermode client that driver has been loaded successfully
+  hvk::send_message(hvk::messages::loaded, hvk::message_types::load_state);
 
   return STATUS_SUCCESS;
 }

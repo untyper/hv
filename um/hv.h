@@ -32,6 +32,29 @@ struct logger_msg {
   char data[max_msg_length];
 };
 
+// this namespace can be expanded by client code
+namespace message_clients
+{
+  // driver should always be client number 0.
+  // this should always be taken into account by usermode clients,
+  // when expanding the namespace.
+  inline constexpr uint64_t driver = 0;
+}
+
+namespace driver_messages {
+  enum : uint64_t {
+    loaded,
+    failed_loading,
+    unloading,
+  };
+}
+
+namespace driver_message_types {
+  enum : uint64_t {
+    load_state
+  };
+}
+
 // hypercall indices
 enum hypercall_code : uint64_t {
   hypercall_ping = 0,
@@ -52,6 +75,7 @@ enum hypercall_code : uint64_t {
   hypercall_install_mmr,
   hypercall_remove_mmr,
   hypercall_remove_all_mmrs,
+  hypercall_read_msr,
   hypercall_send_message,
   hypercall_get_message,
   hypercall_get_message_type,
@@ -75,12 +99,6 @@ enum mmr_memory_mode {
   mmr_memory_mode_r = 0b001,
   mmr_memory_mode_w = 0b010,
   mmr_memory_mode_x = 0b100
-};
-
-enum um_km_messages : uint64_t {
-  message_ping = 0,
-  message_driver_loaded,
-  message_driver_failed,
 };
 
 // helper function to get time, used in wait_for_message
@@ -145,6 +163,9 @@ void remove_mmr(void* handle);
 
 // remove every installed MMR
 void remove_all_mmrs();
+
+// read a Model-Specific Register (MSR) (for example IAT32_PAT for page memory types)
+void read_msr(uint64_t msr);
 
 // send message to hypervisor so clients can fetch it
 void send_message(uint64_t content, uint64_t type = 0);
@@ -382,6 +403,15 @@ inline void remove_all_mmrs() {
   hv::hypercall_input input;
   input.code = hv::hypercall_remove_all_mmrs;
   input.key  = hv::hypercall_key;
+  hv::vmx_vmcall(input);
+}
+
+// read a Model-Specific Register (MSR) (for example IAT32_PAT for page memory types)
+inline void read_msr(uint64_t msr) {
+  hv::hypercall_input input;
+  input.code = hv::hypercall_read_msr;
+  input.key =  hv::hypercall_key;
+  input.args[0] = msr;
   hv::vmx_vmcall(input);
 }
 

@@ -598,6 +598,12 @@ void remove_all_mmrs(vcpu* const cpu) {
   skip_instruction();
 }
 
+// read a Model-Specific Register (MSR) (for example IAT32_PAT for page memory types)
+void read_msr(vcpu* const cpu) {
+  cpu->ctx->rax = __readmsr(cpu->ctx->rcx);
+  skip_instruction();
+}
+
 // assign value to global message object so hv clients can fetch it
 void send_message(vcpu* const cpu) {
   ghv.message.content = cpu->ctx->rcx;
