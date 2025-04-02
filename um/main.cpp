@@ -33,11 +33,6 @@ int main() {
   hide_hypervisor();
   printf("Pinged the hypervisor! Flushing logs...\n");
 
-  if (hv::get_message() != hv::driver_messages::loaded)
-    if (hv::wait_for_message(4096) == hv::driver_messages::loaded)
-
-  printf("Driver loaded!\n");
-
   hv::for_each_cpu([](uint32_t) {
     hv::remove_all_mmrs();
   });
